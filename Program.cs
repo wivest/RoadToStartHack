@@ -12,6 +12,7 @@ builder.Services.Configure<ChatDatabaseSettings>(
     builder.Configuration.GetSection("ChatDatabaseSettings")
 );
 builder.Services.AddSingleton<AuthService>();
+builder.Services.AddSingleton<ChatService>();
 builder.Services.AddControllers();
 
 // Add authorization.

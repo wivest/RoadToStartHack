@@ -5,4 +5,5 @@ public class ChatDatabaseSettings
     public string ConnectionString { get; set; } = null!;
     public string DatabaseName { get; set; } = null!;
     public string ChatCollectionName { get; set; } = null!;
+    public string MLEndpoint { get; set; } = null!;
 }
