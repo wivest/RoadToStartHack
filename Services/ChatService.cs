@@ -1,8 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using DELLight.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 

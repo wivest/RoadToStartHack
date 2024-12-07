@@ -13,6 +13,21 @@ public class ChatController(ChatService service) : ControllerBase
     private readonly ChatService service = service;
 
     [Authorize]
+    [HttpGet]
+    public ActionResult<List<Message>> Messages()
+    {
+        Credentials? credentials = Authorizer.GetCredentials(Request);
+        if (credentials is null)
+            return Unauthorized();
+
+        ChatHistory? history = service.GetChatHistory(credentials.Email);
+        if (history is null)
+            return BadRequest();
+
+        return history.History;
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult> Messages([FromBody] NewMessage message)
     {
