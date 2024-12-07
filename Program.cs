@@ -8,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<AuthDatabaseSettings>(
     builder.Configuration.GetSection("AuthDatabaseSettings")
 );
+builder.Services.Configure<ChatDatabaseSettings>(
+    builder.Configuration.GetSection("ChatDatabaseSettings")
+);
 builder.Services.AddSingleton<AuthService>();
 builder.Services.AddControllers();
 
