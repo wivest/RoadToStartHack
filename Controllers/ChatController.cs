@@ -13,18 +13,16 @@ public class ChatController(ChatService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult> Ask()
     {
-        if (
-            await service.GenerateAnswerAsync(
-                new ChatHistory
-                {
-                    UserId = "1234",
-                    SystemLanguage = "English",
-                    History = []
-                }
-            )
-        )
-            return Ok();
-        else
+        HttpResponseMessage? response = await service.GenerateAnswerAsync(
+            new ChatHistory
+            {
+                UserId = "1234",
+                SystemLanguage = "English",
+                History = []
+            }
+        );
+        if (response is null)
             return BadRequest();
+        return Ok();
     }
 }

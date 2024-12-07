@@ -21,7 +21,7 @@ public class ChatService
         mlEndpoint = settings.Value.MLEndpoint;
     }
 
-    public async Task<bool> GenerateAnswerAsync(ChatHistory history)
+    public async Task<HttpResponseMessage?> GenerateAnswerAsync(ChatHistory history)
     {
         using var client = new HttpClient();
         string json = JsonSerializer.Serialize(history);
@@ -29,8 +29,8 @@ public class ChatService
 
         var response = await client.PostAsync(mlEndpoint, content);
         if (response.IsSuccessStatusCode)
-            return true;
+            return response;
         else
-            return false;
+            return response;
     }
 }
