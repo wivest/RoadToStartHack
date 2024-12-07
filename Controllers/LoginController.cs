@@ -34,40 +34,12 @@ public class AuthController(AuthService service) : ControllerBase
     [HttpPost]
     public ActionResult RefreshToken()
     {
-        string? token = Request.Headers["Authorization"];
-        if (token is null)
+        Credentials? credentials = Authorizer.GetCredentials(Request);
+        if (credentials is null)
             return Unauthorized();
-        token = token.Replace("Bearer ", "");
 
-        var handler = new JwtSecurityTokenHandler();
-        var parameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = false,
-            IssuerSigningKey = Authorizer.GetSymmetricSecurityKey(),
-            ValidateIssuerSigningKey = true
-        };
-
-        var claims = handler.ValidateToken(token, parameters, out var _);
-        string? login = null;
-        string? password = null;
-        foreach (Claim claim in claims.Claims)
-        {
-            if (claim.Type == "login")
-                login = claim.Value;
-            if (claim.Type == "password")
-                password = claim.Value;
-        }
-        if (login is null || password is null)
-            return BadRequest();
-
-        return Login(new Credentials { Email = login, Password = password });
+        return Login(
+            new Credentials { Email = credentials.Email, Password = credentials.Password }
+        );
     }
-}
-
-public record Credentials
-{
-    public string Email { get; set; } = null!;
-    public string Password { get; set; } = null!;
 }
