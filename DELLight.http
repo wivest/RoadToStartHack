@@ -1,0 +1,6 @@
+@DELLight_HostAddress = http://localhost:5124
+
+GET {{DELLight_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
