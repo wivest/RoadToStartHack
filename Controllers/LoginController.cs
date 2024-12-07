@@ -1,6 +1,10 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using DELLight.Models;
 using DELLight.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DELLight.Controllers;
 
@@ -24,6 +28,41 @@ public class AuthController(AuthService service) : ControllerBase
                 refreshToken = ""
             }
         );
+    }
+
+    [Authorize]
+    [HttpPost]
+    public ActionResult RefreshToken()
+    {
+        string? token = Request.Headers["Authorization"];
+        if (token is null)
+            return Unauthorized();
+        token = token.Replace("Bearer ", "");
+
+        var handler = new JwtSecurityTokenHandler();
+        var parameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = false,
+            IssuerSigningKey = Authorizer.GetSymmetricSecurityKey(),
+            ValidateIssuerSigningKey = true
+        };
+
+        var claims = handler.ValidateToken(token, parameters, out var _);
+        string? login = null;
+        string? password = null;
+        foreach (Claim claim in claims.Claims)
+        {
+            if (claim.Type == "login")
+                login = claim.Value;
+            if (claim.Type == "password")
+                password = claim.Value;
+        }
+        if (login is null || password is null)
+            return BadRequest();
+
+        return Login(new Credentials { Email = login, Password = password });
     }
 }
 
