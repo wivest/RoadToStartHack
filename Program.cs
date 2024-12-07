@@ -20,9 +20,7 @@ builder
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = false,
-            ValidIssuer = Authorizer.ISSUER,
             ValidateAudience = false,
-            ValidAudience = Authorizer.AUDIENCE,
             ValidateLifetime = true,
             IssuerSigningKey = Authorizer.GetSymmetricSecurityKey(),
             ValidateIssuerSigningKey = true,

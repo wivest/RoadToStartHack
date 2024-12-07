@@ -7,8 +7,6 @@ namespace DELLight.Models;
 
 public class Authorizer
 {
-    public const string ISSUER = "42";
-    public const string AUDIENCE = "DELLight";
     const string KEY = "mysupersecret_secretsecretsecretkey!!!42";
 
     public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
@@ -16,10 +14,8 @@ public class Authorizer
 
     public static string GenerateJWT(string login, string password)
     {
-        var claims = new List<Claim> { new(login, password) };
+        var claims = new List<Claim> { new("login", login), new("password", password) };
         var jwt = new JwtSecurityToken(
-            issuer: ISSUER,
-            audience: AUDIENCE,
             claims: claims,
             expires: DateTime.UtcNow.Add(TimeSpan.FromDays(7)),
             signingCredentials: new SigningCredentials(
