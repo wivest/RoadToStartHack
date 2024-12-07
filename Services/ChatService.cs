@@ -21,6 +21,11 @@ public class ChatService
         mlEndpoint = settings.Value.MLEndpoint;
     }
 
+    public ChatHistory? GetChatHistory(string userId)
+    {
+        return collection.Find(history => history.UserId == userId).FirstOrDefault();
+    }
+
     public async Task<HttpResponseMessage?> GenerateAnswerAsync(ChatHistory history)
     {
         using var client = new HttpClient();
