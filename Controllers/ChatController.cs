@@ -27,12 +27,12 @@ public class ChatController(ChatService service) : ControllerBase
 
         HttpResponseMessage? response = await service.GenerateAnswerAsync(history);
         if (response is null)
-            return NotFound();
+            return BadRequest();
 
         Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
-            return NotFound();
+            return BadRequest();
         return new JsonResult(generated);
     }
 }
