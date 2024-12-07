@@ -34,3 +34,12 @@ public record Message
     [JsonPropertyName("content")]
     public string Content { get; set; } = null!;
 }
+
+public record GeneratedMessage
+{
+    [JsonPropertyName("success")]
+    public bool Success { get; set; }
+
+    [JsonPropertyName("generated_message")]
+    public string Content { get; set; } = null!;
+}

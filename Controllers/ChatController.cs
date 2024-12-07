@@ -1,3 +1,4 @@
+using System.Text.Json;
 using DELLight.Models;
 using DELLight.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,11 @@ public class ChatController(ChatService service) : ControllerBase
             }
         );
         if (response is null)
-            return BadRequest();
-        return Ok();
+            return NotFound();
+        Stream stream = response.Content.ReadAsStream();
+        GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
+        if (generated == null || !generated.Success)
+            return NotFound();
+        return new JsonResult(generated);
     }
 }
