@@ -16,7 +16,7 @@ public class ChatService
         var mongoClient = new MongoClient(settings.Value.ConnectionString);
         IMongoDatabase mongoDatabase = mongoClient.GetDatabase(settings.Value.DatabaseName);
         collection = mongoDatabase.GetCollection<ChatHistory>(settings.Value.ChatCollectionName);
-        mlEndpoint = settings.Value.MLEndpoint;
+        mlEndpoint = settings.Value.GenerateEndpoint;
     }
 
     public ChatHistory? GetChatHistory(string userId)
