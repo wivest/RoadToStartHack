@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using DELLight.Models;
@@ -9,14 +10,16 @@ namespace DELLight.Services;
 public class ChatService
 {
     private readonly IMongoCollection<ChatHistory> collection;
-    private readonly string mlEndpoint;
+    private readonly string generateEndpoint;
+    private readonly string audioEndpoint;
 
     public ChatService(IOptions<ChatDatabaseSettings> settings)
     {
         var mongoClient = new MongoClient(settings.Value.ConnectionString);
         IMongoDatabase mongoDatabase = mongoClient.GetDatabase(settings.Value.DatabaseName);
         collection = mongoDatabase.GetCollection<ChatHistory>(settings.Value.ChatCollectionName);
-        mlEndpoint = settings.Value.GenerateEndpoint;
+        generateEndpoint = settings.Value.GenerateEndpoint;
+        audioEndpoint = settings.Value.AudioEndpoint;
     }
 
     public ChatHistory? GetChatHistory(string userId)
@@ -35,7 +38,37 @@ public class ChatService
         string json = JsonSerializer.Serialize(history);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync(mlEndpoint, content);
+        var response = await client.PostAsync(generateEndpoint, content);
+        if (response.IsSuccessStatusCode)
+            return response;
+        else
+            return response;
+    }
+
+    public async Task<HttpResponseMessage?> TranscriptAudio()
+    {
+        using var client = new HttpClient();
+        var content = new MultipartFormDataContent();
+
+        byte[] bytes = File.ReadAllBytes("15.wav");
+        var byteArrayContent = new ByteArrayContent(bytes);
+        byteArrayContent.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
+        content.Add(byteArrayContent, "file", "15.wav");
+
+        var response = await client.PostAsync(audioEndpoint, content);
+        if (response.IsSuccessStatusCode)
+            return response;
+        else
+            return response;
+    }
+
+    public async Task<HttpResponseMessage?> TranslateMessage(string text)
+    {
+        using var client = new HttpClient();
+        string json = JsonSerializer.Serialize(new { message = text });
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync(generateEndpoint, content);
         if (response.IsSuccessStatusCode)
             return response;
         else

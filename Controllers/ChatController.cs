@@ -54,4 +54,25 @@ public class ChatController(ChatService service) : ControllerBase
 
         return (FlutterMessage)(Message)generated;
     }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> Transcript()
+    {
+        HttpResponseMessage? response = await service.TranscriptAudio();
+        if (response is null)
+            return BadRequest();
+        Console.WriteLine(await response.Content.ReadAsStringAsync());
+        return Ok();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> Translate([FromBody] FlutterMessage message)
+    {
+        HttpResponseMessage? response = await service.TranslateMessage(message.Content);
+        if (response is null)
+            return BadRequest();
+        return Ok();
+    }
 }
