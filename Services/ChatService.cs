@@ -24,6 +24,11 @@ public class ChatService
         return collection.Find(history => history.UserId == userId).FirstOrDefault();
     }
 
+    public void UpdateChatHistory(string userId, ChatHistory newHistory)
+    {
+        collection.ReplaceOne(history => history.UserId == userId, newHistory);
+    }
+
     public async Task<HttpResponseMessage?> GenerateAnswerAsync(ChatHistory history)
     {
         using var client = new HttpClient();
@@ -35,5 +40,15 @@ public class ChatService
             return response;
         else
             return response;
+    }
+
+    public static List<FlutterMessage> CastHistory(List<Message> messages)
+    {
+        var casted = new List<FlutterMessage>();
+
+        foreach (Message message in messages)
+            casted.Add((FlutterMessage)message);
+
+        return casted;
     }
 }

@@ -14,7 +14,7 @@ public class ChatController(ChatService service) : ControllerBase
 
     [Authorize]
     [HttpGet]
-    public ActionResult<List<Message>> Messages()
+    public ActionResult<List<FlutterMessage>> Messages()
     {
         Credentials? credentials = Authorizer.GetCredentials(Request);
         if (credentials is null)
@@ -24,12 +24,14 @@ public class ChatController(ChatService service) : ControllerBase
         if (history is null)
             return BadRequest();
 
-        return history.History;
+        return ChatService.CastHistory(history.History);
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult> Messages([FromBody] NewMessage message)
+    public async Task<ActionResult<List<FlutterMessage>>> Messages(
+        [FromBody] FlutterMessage message
+    )
     {
         Credentials? credentials = Authorizer.GetCredentials(Request);
         if (credentials is null)
@@ -39,6 +41,7 @@ public class ChatController(ChatService service) : ControllerBase
         if (history is null)
             return BadRequest();
         history.History.Add((Message)message);
+        service.UpdateChatHistory(credentials.Email, history);
 
         HttpResponseMessage? response = await service.GenerateAnswerAsync(history);
         if (response is null)
@@ -48,6 +51,9 @@ public class ChatController(ChatService service) : ControllerBase
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
-        return new JsonResult(generated);
+        history.History.Add((Message)generated);
+        service.UpdateChatHistory(credentials.Email, history);
+
+        return ChatService.CastHistory(history.History);
     }
 }
