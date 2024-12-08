@@ -11,7 +11,8 @@ public class ChatService
 {
     private readonly IMongoCollection<ChatHistory> collection;
     private readonly string generateEndpoint;
-    private readonly string audioEndpoint;
+    private readonly string transcriptEndpoint;
+    private readonly string translateEndpoint;
 
     public ChatService(IOptions<ChatDatabaseSettings> settings)
     {
@@ -19,7 +20,8 @@ public class ChatService
         IMongoDatabase mongoDatabase = mongoClient.GetDatabase(settings.Value.DatabaseName);
         collection = mongoDatabase.GetCollection<ChatHistory>(settings.Value.ChatCollectionName);
         generateEndpoint = settings.Value.GenerateEndpoint;
-        audioEndpoint = settings.Value.AudioEndpoint;
+        transcriptEndpoint = settings.Value.TranscriptEndpoint;
+        translateEndpoint = settings.Value.TranslateEndpoint;
     }
 
     public ChatHistory? GetChatHistory(string userId)
@@ -32,47 +34,35 @@ public class ChatService
         collection.ReplaceOne(history => history.UserId == userId, newHistory);
     }
 
-    public async Task<HttpResponseMessage?> GenerateAnswerAsync(ChatHistory history)
+    public async Task<HttpResponseMessage> GenerateAnswerAsync(ChatHistory history)
     {
         using var client = new HttpClient();
         string json = JsonSerializer.Serialize(history);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync(generateEndpoint, content);
-        if (response.IsSuccessStatusCode)
-            return response;
-        else
-            return response;
+        return await client.PostAsync(generateEndpoint, content);
     }
 
-    public async Task<HttpResponseMessage?> TranscriptAudio()
+    public async Task<HttpResponseMessage> TranscriptAudio(IFormFile file)
     {
         using var client = new HttpClient();
         var content = new MultipartFormDataContent();
 
-        byte[] bytes = File.ReadAllBytes("15.wav");
-        var byteArrayContent = new ByteArrayContent(bytes);
+        Stream stream = file.OpenReadStream();
+        var byteArrayContent = new StreamContent(stream);
         byteArrayContent.Headers.ContentType = new MediaTypeHeaderValue("audio/wav");
         content.Add(byteArrayContent, "file", "15.wav");
 
-        var response = await client.PostAsync(audioEndpoint, content);
-        if (response.IsSuccessStatusCode)
-            return response;
-        else
-            return response;
+        return await client.PostAsync(transcriptEndpoint, content);
     }
 
-    public async Task<HttpResponseMessage?> TranslateMessage(string text)
+    public async Task<HttpResponseMessage> TranslateMessage(string message)
     {
         using var client = new HttpClient();
-        string json = JsonSerializer.Serialize(new { message = text });
+        string json = JsonSerializer.Serialize(new { text = message, language = "en" }); // TODO: replace language
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync(generateEndpoint, content);
-        if (response.IsSuccessStatusCode)
-            return response;
-        else
-            return response;
+        return await client.PostAsync(translateEndpoint, content);
     }
 
     public static List<FlutterMessage> CastHistory(List<Message> messages)

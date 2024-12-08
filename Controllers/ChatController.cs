@@ -41,9 +41,7 @@ public class ChatController(ChatService service) : ControllerBase
         history.History.Add((Message)message);
         service.UpdateChatHistory(credentials.Email, history);
 
-        HttpResponseMessage? response = await service.GenerateAnswerAsync(history);
-        if (response is null)
-            return BadRequest();
+        HttpResponseMessage response = await service.GenerateAnswerAsync(history);
 
         Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
@@ -57,22 +55,34 @@ public class ChatController(ChatService service) : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult> Transcript()
+    public async Task<ActionResult<FlutterMessage>> Transcript([FromForm] IFormFile file)
     {
-        HttpResponseMessage? response = await service.TranscriptAudio();
-        if (response is null)
+        Credentials? credentials = Authorizer.GetCredentials(Request);
+        if (credentials is null)
+            return Unauthorized();
+
+        ChatHistory? history = service.GetChatHistory(credentials.Email);
+        if (history is null)
             return BadRequest();
-        Console.WriteLine(await response.Content.ReadAsStringAsync());
-        return Ok();
+
+        HttpResponseMessage response = await service.TranscriptAudio(file);
+
+        Stream stream = response.Content.ReadAsStream();
+        GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
+        if (generated == null || !generated.Success)
+            return BadRequest();
+        history.History.Add((Message)generated);
+        service.UpdateChatHistory(credentials.Email, history);
+
+        return (FlutterMessage)(Message)generated;
     }
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult> Translate([FromBody] FlutterMessage message)
+    public async Task<FileResult> Translate([FromBody] FlutterMessage message)
     {
-        HttpResponseMessage? response = await service.TranslateMessage(message.Content);
-        if (response is null)
-            return BadRequest();
-        return Ok();
+        HttpResponseMessage response = await service.TranslateMessage(message.Content);
+        Stream stream = response.Content.ReadAsStream();
+        return new FileStreamResult(stream, "audio/wav");
     }
 }
