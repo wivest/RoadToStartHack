@@ -29,9 +29,7 @@ public class ChatController(ChatService service) : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<ActionResult<List<FlutterMessage>>> Messages(
-        [FromBody] FlutterMessage message
-    )
+    public async Task<ActionResult<FlutterMessage>> Messages([FromBody] FlutterMessage message)
     {
         Credentials? credentials = Authorizer.GetCredentials(Request);
         if (credentials is null)
@@ -54,6 +52,6 @@ public class ChatController(ChatService service) : ControllerBase
         history.History.Add((Message)generated);
         service.UpdateChatHistory(credentials.Email, history);
 
-        return ChatService.CastHistory(history.History);
+        return (FlutterMessage)(Message)generated;
     }
 }
