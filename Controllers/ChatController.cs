@@ -4,6 +4,7 @@ using DELLight.Models;
 using DELLight.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NAudio.Wave;
 
 namespace DELLight.Controllers;
 
@@ -81,10 +82,12 @@ public class ChatController(ChatService service) : ControllerBase
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
-        history.History.Add((Message)generated);
+        var message = (Message)generated;
+        message.Role = "user";
+        history.History.Add(message);
         service.UpdateChatHistory(credentials.Email, history);
 
-        return (FlutterMessage)(Message)generated;
+        return (FlutterMessage)message;
     }
 
     [Authorize]
