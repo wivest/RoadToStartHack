@@ -8,4 +8,5 @@ public class ChatDatabaseSettings
     public string GenerateEndpoint { get; set; } = null!;
     public string TranscriptEndpoint { get; set; } = null!;
     public string TranslateEndpoint { get; set; } = null!;
+    public string VisualizeEndpoint { get; set; } = null!;
 }

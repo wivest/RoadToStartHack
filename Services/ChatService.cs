@@ -13,6 +13,7 @@ public class ChatService
     private readonly string generateEndpoint;
     private readonly string transcriptEndpoint;
     private readonly string translateEndpoint;
+    private readonly string visualizeEndpoint;
 
     public ChatService(IOptions<ChatDatabaseSettings> settings)
     {
@@ -22,6 +23,7 @@ public class ChatService
         generateEndpoint = settings.Value.GenerateEndpoint;
         transcriptEndpoint = settings.Value.TranscriptEndpoint;
         translateEndpoint = settings.Value.TranslateEndpoint;
+        visualizeEndpoint = settings.Value.VisualizeEndpoint;
     }
 
     public ChatHistory? GetChatHistory(string userId)
@@ -63,6 +65,15 @@ public class ChatService
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         return await client.PostAsync(translateEndpoint, content);
+    }
+
+    public async Task<HttpResponseMessage> VisualizeMessage(string message)
+    {
+        using var client = new HttpClient();
+        string json = JsonSerializer.Serialize(new { text = message, language = "en" }); // TODO: replace language
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        return await client.PostAsync(visualizeEndpoint, content);
     }
 
     public static List<FlutterMessage> CastHistory(List<Message> messages)

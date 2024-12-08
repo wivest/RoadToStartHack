@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using DELLight.Models;
 using DELLight.Services;
@@ -79,10 +80,25 @@ public class ChatController(ChatService service) : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<FileResult> Translate([FromBody] FlutterMessage message)
+    public async Task<ActionResult> Translate([FromBody] FlutterMessage message)
     {
         HttpResponseMessage response = await service.TranslateMessage(message.Content);
         Stream stream = response.Content.ReadAsStream();
-        return new FileStreamResult(stream, "audio/wav");
+        GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
+        if (generated == null || !generated.Success)
+            return BadRequest();
+        return new FileContentResult(Convert.FromBase64String(generated.Content), "audio/wav");
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> Visualize([FromBody] FlutterMessage message)
+    {
+        HttpResponseMessage response = await service.VisualizeMessage(message.Content);
+        Stream stream = response.Content.ReadAsStream();
+        GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
+        if (generated == null || !generated.Success)
+            return BadRequest();
+        return new FileContentResult(Convert.FromBase64String(generated.Content), "video/mp4");
     }
 }
