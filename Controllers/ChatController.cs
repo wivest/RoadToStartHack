@@ -44,7 +44,7 @@ public class ChatController(ChatService service) : ControllerBase
 
         HttpResponseMessage response = await service.GenerateAnswerAsync(history);
 
-        Stream stream = response.Content.ReadAsStream();
+        using Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
@@ -52,6 +52,15 @@ public class ChatController(ChatService service) : ControllerBase
         service.UpdateChatHistory(credentials.Email, history);
 
         return (FlutterMessage)(Message)generated;
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult<FlutterMessage>> Wav()
+    {
+        using var stream = new FileStream("speech.wav", FileMode.Open);
+        var file = new FormFile(stream, 0, stream.Length, "file", "15.wav");
+        return await Transcript(file);
     }
 
     [Authorize]
@@ -68,7 +77,7 @@ public class ChatController(ChatService service) : ControllerBase
 
         HttpResponseMessage response = await service.TranscriptAudio(file);
 
-        Stream stream = response.Content.ReadAsStream();
+        using Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
@@ -83,7 +92,7 @@ public class ChatController(ChatService service) : ControllerBase
     public async Task<ActionResult> Translate([FromBody] FlutterMessage message)
     {
         HttpResponseMessage response = await service.TranslateMessage(message.Content);
-        Stream stream = response.Content.ReadAsStream();
+        using Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
@@ -95,7 +104,7 @@ public class ChatController(ChatService service) : ControllerBase
     public async Task<ActionResult> Visualize([FromBody] FlutterMessage message)
     {
         HttpResponseMessage response = await service.VisualizeMessage(message.Content);
-        Stream stream = response.Content.ReadAsStream();
+        using Stream stream = response.Content.ReadAsStream();
         GeneratedMessage? generated = JsonSerializer.Deserialize<GeneratedMessage>(stream);
         if (generated == null || !generated.Success)
             return BadRequest();
